@@ -156,7 +156,7 @@ class game:
             das demais celualas do mesmo grupo
             """
             
-            pass
+            return "triangulo"
             
             
         
