@@ -26,6 +26,7 @@ def duplicados(data):
     if type(data) == pd.DataFrame:
         out = []
         out2 = pd.DataFrame(index=data.index, columns=data.columns)
+        changed = False
         for coluna in data:
             for linha in data[coluna].index:
                 valor = data[coluna][linha] #coordenadas e valor do obj atual
@@ -43,7 +44,9 @@ def duplicados(data):
                             #if not(dic in out):
                             out.append(dic)
                             out2[coluna][linha] = valor
-        return out2
+                            changed = True
+        if changed:
+            return out2
 
 
 class game:
@@ -144,13 +147,15 @@ class game:
                     lambda x: True if type(x) == list and len(x) == 2 else False)])
             quadrante_duplas = pd.concat(a, axis=1)
             
-            #checar linha
+            
             quadrante_duplas = duplicados(quadrante_duplas)
             linha_duplas = duplicados(linha_duplas)
             coluna_duplas = duplicados(coluna_duplas)
             
-        def checar_possibilidades():
+            if len(quadrante_duplas) != 0:
+                pass
             
+        def checar_possibilidades():
             """
             checar se só existe um numero possivel para a celula dentre as possibilidades
             das demais celualas do mesmo grupo
