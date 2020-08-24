@@ -130,33 +130,103 @@ class game:
             out.remove(valor)
         return out
 
+    def naked_pairs(self, coluna, linha):
+        cell_value = self.tab.at[linha, coluna]
+        
+        linha_duplas = self.get_linha(linha)[ self.get_linha(linha).apply(
+            lambda x: True if type(x) == list and len(x) == 2 else False)]
+        
+        coluna_duplas = self.get_coluna(coluna)[ self.get_coluna(coluna).apply(
+            lambda x: True if type(x) == list and len(x) == 2 else False)]
+        
+        quadrante_duplas = self.get_quadrante(linha, coluna)
+        a = []
+        for i in quadrante_duplas:
+            a.append(quadrante_duplas[i][quadrante_duplas[i].apply(
+                lambda x: True if type(x) == list and len(x) == 2 else False)])
+        quadrante_duplas = pd.concat(a, axis=1)
+        
+        
+        quadrante_duplas = duplicados(quadrante_duplas)
+        linha_duplas = duplicados(linha_duplas)
+        coluna_duplas = duplicados(coluna_duplas)
+        
+        try:
+            remover_numeros = [] # numeros a serem removidos
+            for i_coluna in quadrante_duplas.columns:
+                for i_linha in quadrante_duplas.index:
+                    valor = quadrante_duplas[i_coluna][i_linha]
+                    if type(valor) == list:
+                        for item in valor:
+                            if not(item in remover_numeros):
+                                remover_numeros.append(item)
+        except:
+            pass
+        
+        try:
+            for serie in (linha_duplas, coluna_duplas):
+                for i_linha in serie.index:
+                    valor = serie[i_linha]
+                    if type(valor) == list:
+                        for item in valor:
+                            if not(item in remover_numeros):
+                                remover_numeros.append(item)
+        except:
+            pass
+                            
+        tab = self.tab
+        # checar coluna
+        
+        for i_coluna in tab.columns:
+            if i_coluna == coluna:
+                continue
+            valor = tab.at[linha, i_coluna]
+            if type(valor) == list and valor != cell_value:
+                valor = valor.copy()
+                for numero in remover_numeros:
+                    if numero in valor:
+                        valor.remove(numero)
+                        tab.at[linha,i_coluna] = valor
+        
+        # checar coluna
+        for i_linha in tab.index:
+            if i_linha == linha:
+                continue
+            valor = tab.at[i_linha, coluna]
+            if type(valor) == list  and valor != cell_value:
+                valor = valor.copy()
+                for numero in remover_numeros:
+                    if numero in valor:
+                        valor.remove(numero)
+                        tab.at[i_linha, coluna] = valor
+                
+        # checar quadrante
+        y = floor(coluna/3)
+        x = floor(linha/3)
+        a = 3*x
+        b = 3*y
+        quadrante = tab.loc[[0+a,1+a,2+a],[0+b,1+b,2+b]]
+        
+        for i_linha in quadrante.index:
+            for i_coluna in quadrante.columns:
+                if i_linha == linha and i_coluna == coluna:
+                    continue
+                valor = tab.at[i_linha, i_coluna]
+                if type(valor) == list and valor != cell_value:
+                    for numero in remover_numeros:
+                        if numero in valor:
+                            valor.remove(numero)
+                            tab.at[i_linha,i_coluna] = valor
+                            
+        return tab
+        
 
     def solve_step(self):
         
-        def naked_pairs(coluna, linha):
-            linha_duplas = self.get_linha(linha)[ self.get_linha(linha).apply(
-                lambda x: True if type(x) == list and len(x) == 2 else False)]
-            
-            coluna_duplas = self.get_coluna(coluna)[ self.get_coluna(coluna).apply(
-                lambda x: True if type(x) == list and len(x) == 2 else False)]
-            
-            quadrante_duplas = self.get_quadrante(linha, coluna)
-            a = []
-            for i in quadrante_duplas:
-                a.append(quadrante_duplas[i][quadrante_duplas[i].apply(
-                    lambda x: True if type(x) == list and len(x) == 2 else False)])
-            quadrante_duplas = pd.concat(a, axis=1)
-            
-            
-            quadrante_duplas = duplicados(quadrante_duplas)
-            linha_duplas = duplicados(linha_duplas)
-            coluna_duplas = duplicados(coluna_duplas)
-            
-            if len(quadrante_duplas) != 0:
-                pass
             
         def checar_possibilidades():
             """
+            TODO
             checar se só existe um numero possivel para a celula dentre as possibilidades
             das demais celualas do mesmo grupo
             """
@@ -164,6 +234,7 @@ class game:
             return "triangulo"
             
             
+        tab0 = self.tab.copy()
         
         for coluna in self.tab.columns: # coluna [0,9]
             for linha in self.tab.index: # linha [0,9]
@@ -178,8 +249,16 @@ class game:
                     
                 elif cell != possibilidades:
                     self.tab.at[linha, coluna] = possibilidades
+        
+        if tab0.equals(self.tab):
+            print('usando naked pairs')
+            for coluna in self.tab.columns:
+                for linha in self.tab.index:
+                    self.tab = self.naked_pairs(coluna, linha)
                 
         return self.tab
+
+
 
 TAB1 =      [[5,3,0,0,7,0,0,0,0],
              [6,0,0,1,9,5,0,0,0],
@@ -200,10 +279,12 @@ TAB2 =      [[0,0,0,0,8,0,0,7,0],
              [3,0,0,5,0,1,0,2,8],
              [1,8,0,4,0,0,0,6,3],
              [0,6,0,0,0,0,4,0,0]]
-        
+
+"""        
 jogo = game(TAB2)
 for i in range(10):
     jogo.solve_step()
 
-jogo.valores_posiveis(6,4)
+tab2 = jogo.naked_pairs(4, 7)
+"""
 
