@@ -14,6 +14,8 @@ class Field:
                 return "\x1B[1;32m"+str(self.final)+"\x1B[0m "
             if self.type == "final":
                 return "\x1B[1;33m"+str(self.final)+"\x1B[0m "
+            if self.type == "random":
+                return "\x1B[1;34m"+str(self.final)+"\x1B[0m "
         if len(self.possible) > 0:
             return "\x1B[3m"+str(len(self.possible))+"\x1B[0m "
         return "_ "
@@ -22,9 +24,14 @@ class Field:
         return f"{self.line},{self.column}:{self.possible}"
     
     def setAnchor(self, value: int):
-        self.final = value
-        self.possible = {value}
-        self.type = "anchor"
+        if value == 0 or value is None:
+            self.final = None
+            self.possible = {}
+            self.type = "possible"
+        else:
+            self.final = value
+            self.possible = {value}
+            self.type = "anchor"
 
     def update_state(self):
         if len(self.possible) == 1:
@@ -35,5 +42,6 @@ class Field:
             self.type = "possible"
 
     def colapse(self):
-        self.possible = choice(tuple(self.possible))
-        self.update_state()
+        self.final = choice(tuple(self.possible))
+        self.possible = {self.final}
+        self.type = "random"
