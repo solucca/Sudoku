@@ -6,9 +6,7 @@ from random import choice
 class Sudoku:
     def __init__(self, board: List[List[int]]):
         self.board = [[Field(i,j) for j in range(9)] for i in range(9)]
-        for y in range(9):
-            for x in range(9):
-                self.board[y][x].setAnchor(board[y][x])
+        self.set_board(board)
 
     def __str__(self) -> str:
         out = ""
@@ -117,12 +115,22 @@ class Sudoku:
 
     def get_state(self):
         return [[field.final for field in linha] for linha in self.board]
-        
     
+    def solve(self, max_iterations = 20):
+        iterations = 0
+        starting = self.get_state()
 
+        while not self.done() and iterations < max_iterations:
+            iterations += 1
+            random_move = self.random_choice()
+            print(self)
+            if (not random_move) or self.fail():
+                self.set_board(starting)   
+                print("Error! Going back...\n")
+        print(f"\n------------{iterations}------------\n")
 
-        
-
+        print(self)
+        print(f"SOLVED: {self.check_solution()}")
 
 
 if __name__ == "__main__":
@@ -145,23 +153,7 @@ if __name__ == "__main__":
              [3,0,0,5,0,1,0,2,8],
              [1,8,0,4,0,0,0,6,3],
              [0,6,0,0,0,0,4,0,0]]
+    
     game = Sudoku(TAB)
-    game.colapse_board()
-
-    starting = game.get_state()
-
-    iterations = 0
-    while not game.done() and iterations < 10:
-        iterations += 1
-        random_move = game.random_choice()
-        print(game)
-        if (not random_move) or game.fail():
-            game.set_board(starting)   
-            print("Error! Going back...\n")
-            
-
-    print(f"------------{iterations}------------")
-
-    print(game)
-    print(f"Solved: {game.check_solution()}")
+    game.solve()
         
